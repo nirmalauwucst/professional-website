@@ -55,7 +55,7 @@ const About = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <h3 className="text-2xl font-semibold font-poppins mb-4">
-              Software Developer & Tech Entrepreneur
+              Software Developer & Tech Entthusiast
             </h3>
             <p className="text-gray-700 mb-6">
               I'm a passionate software developer with over 8 years of experience building web and mobile applications. My journey began when I built my first website at 15, and since then, I've been on a mission to create digital solutions that solve real-world problems.

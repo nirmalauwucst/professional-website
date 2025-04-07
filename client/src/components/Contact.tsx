@@ -33,13 +33,19 @@ const Contact = () => {
   
   // Contact form submission using react-query
   const contactMutation = useMutation({
-    mutationFn: (data: ContactFormData) => 
-      apiRequest("POST", "/api/contact", data),
-    onSuccess: () => {
+    mutationFn: async (data: ContactFormData) => {
+      const response = await apiRequest("POST", "/api/contact", data);
+      return response.json();
+    },
+    onSuccess: (data: { success: boolean; message: string; contactId?: number }) => {
       toast({
         title: "Message sent!",
-        description: "Thanks for your message! I'll respond as soon as possible.",
+        description: data.message || "Thanks for your message! I'll respond as soon as possible.",
       });
+      
+      if (data.contactId) {
+        console.log("Contact message stored with ID:", data.contactId);
+      }
       
       // Reset form
       setFormData({
@@ -49,12 +55,24 @@ const Contact = () => {
         message: "",
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      console.error("Contact form error:", error);
+      
+      // Check if we have a validation error from the API
+      if (error.response?.status === 400 && error.data?.errors) {
+        const errorMessage = error.data.errors.map((err: any) => err.message).join(', ');
+        toast({
+          title: "Validation Error",
+          description: errorMessage || "Please check your form inputs and try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: `Failed to send message: ${error instanceof Error ? error.message : 'Server error, please try again later.'}`,
+          variant: "destructive",
+        });
+      }
     },
   });
   
