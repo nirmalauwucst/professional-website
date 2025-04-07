@@ -46,17 +46,8 @@ export default function NewBlogPost() {
         formData.append("coverImage", coverImage);
       }
 
-      const response = await fetch("/api/cms/blog", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create blog post");
-      }
-
-      return await response.json();
+      // Use apiRequest to include authentication token
+      return await apiRequest("POST", "/api/cms/blog", formData);
     },
     onSuccess: () => {
       toast({

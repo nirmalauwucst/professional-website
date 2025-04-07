@@ -56,7 +56,20 @@ export default function EditBlogPost() {
       // Fetch post content from s3Key
       const fetchContent = async () => {
         try {
-          const response = await fetch(`/api/blog/content/${post.s3Key}`);
+          // Get the auth token
+          const token = localStorage.getItem('cms_auth_token');
+          
+          // Prepare headers with auth token if available
+          const headers: Record<string, string> = {};
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+          
+          const response = await fetch(`/api/blog/content/${post.s3Key}`, {
+            headers,
+            credentials: "include"
+          });
+          
           if (response.ok) {
             const contentData = await response.json();
             setContent(contentData.content);
@@ -87,17 +100,8 @@ export default function EditBlogPost() {
         formData.append("coverImage", coverImage);
       }
 
-      const response = await fetch(`/api/cms/blog/${postId}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update blog post");
-      }
-
-      return await response.json();
+      // Use apiRequest to include authentication token
+      return await apiRequest("PUT", `/api/cms/blog/${postId}`, formData);
     },
     onSuccess: () => {
       toast({
