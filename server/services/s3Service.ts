@@ -148,6 +148,22 @@ export const uploadImage = async (
   buffer: Buffer,
   contentType: string,
 ): Promise<string> => {
+  // Check for valid environment variables
+  if (!bucketName) {
+    console.error("AWS_S3_BUCKET environment variable is not set or empty");
+    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
+  }
+
+  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
+    console.error("One or more AWS environment variables are missing");
+    throw new Error("AWS configuration is incomplete. Please check AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION");
+  }
+
+  // Log bucket name with format validation for debugging
+  const bucketNameRegex = /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/;
+  const isValidBucketName = bucketNameRegex.test(bucketName);
+  console.log(`Bucket name validation for "${bucketName}": ${isValidBucketName ? 'Valid' : 'Invalid'}`);
+
   // Ensure prefix is consistent but not duplicated
   let fullKey = key;
   if (!key.startsWith("blog/")) {
@@ -156,11 +172,6 @@ export const uploadImage = async (
     } else {
       fullKey = `blog/${key}`;
     }
-  }
-
-  // Validate bucket name before attempting upload
-  if (!bucketName) {
-    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
   }
 
   const params = {
@@ -176,10 +187,20 @@ export const uploadImage = async (
     - Bucket: ${params.Bucket}
     - Key: ${params.Key}
     - Content Type: ${params.ContentType}
-    - Content Length: ${buffer.length} bytes`);
+    - Content Length: ${buffer.length} bytes
+    - Region: ${process.env.AWS_REGION}`);
     
     const response = await s3.upload(params).promise();
     console.log(`Successfully uploaded image to S3. Location: ${response.Location}`);
+    
+    // If the response doesn't include a Location, construct one
+    if (!response.Location) {
+      const region = process.env.AWS_REGION;
+      const constructedUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fullKey}`;
+      console.log(`No location in response, using constructed URL: ${constructedUrl}`);
+      return constructedUrl;
+    }
+    
     return response.Location;
   } catch (error) {
     console.error("Error uploading image to S3:", error);

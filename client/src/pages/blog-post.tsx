@@ -158,6 +158,10 @@ export default function BlogPostPage() {
                   src={post.coverImage}
                   alt={post.title}
                   className="w-full h-auto object-cover"
+                  onError={(e) => {
+                    console.error(`Failed to load image: ${post.coverImage}`);
+                    e.currentTarget.src = "https://placehold.co/1200x600?text=Image+Not+Available";
+                  }}
                 />
               </div>
             )}

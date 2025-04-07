@@ -10,7 +10,7 @@ declare global {
     }
   }
 }
-import { uploadMarkdown, deleteMarkdown } from '../services/s3Service';
+import { uploadMarkdown, deleteMarkdown, uploadImage } from '../services/s3Service';
 import formidable from 'formidable';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
