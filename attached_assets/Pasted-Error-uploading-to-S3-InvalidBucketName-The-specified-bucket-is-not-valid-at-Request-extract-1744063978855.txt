@@ -1,0 +1,40 @@
+Error uploading to S3: InvalidBucketName: The specified bucket is not valid.
+    at Request.extractError (/home/runner/workspace/node_modules/aws-sdk/lib/services/s3.js:757:35)
+    at Request.callListeners (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:106:20)
+    at Request.emit (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:78:10)
+    at Request.emit (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:686:14)
+    at Request.transition (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:22:10)
+    at AcceptorStateMachine.runTo (/home/runner/workspace/node_modules/aws-sdk/lib/state_machine.js:14:12)
+    at /home/runner/workspace/node_modules/aws-sdk/lib/state_machine.js:26:10
+    at Request.<anonymous> (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:38:9)
+    at Request.<anonymous> (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:688:12)
+    at Request.callListeners (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:116:18)
+    at Request.emit (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:78:10)
+    at Request.emit (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:686:14)
+    at Request.transition (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:22:10)
+    at AcceptorStateMachine.runTo (/home/runner/workspace/node_modules/aws-sdk/lib/state_machine.js:14:12)
+    at /home/runner/workspace/node_modules/aws-sdk/lib/state_machine.js:26:10
+    at Request.<anonymous> (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:38:9)
+    at Request.<anonymous> (/home/runner/workspace/node_modules/aws-sdk/lib/request.js:688:12)
+    at Request.callListeners (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:116:18)
+    at callNextListener (/home/runner/workspace/node_modules/aws-sdk/lib/sequential_executor.js:96:12)
+    at IncomingMessage.onEnd (/home/runner/workspace/node_modules/aws-sdk/lib/event_listeners.js:417:13)
+    at IncomingMessage.emit (node:events:530:35)
+    at IncomingMessage.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  code: 'InvalidBucketName',
+  region: null,
+  time: 2025-04-07T22:08:59.471Z,
+  requestId: 'HY3HRSB5VH36G4HV',
+  extendedRequestId: 'dmfWY0jpZj5NN7YQC5gZQPV7adLzp/U4EP1hMHbeE0BziIY2JgaBbSipyyvpYqWdH+xlngEYfD8=',
+  cfId: undefined,
+  statusCode: 400,
+  retryable: false,
+  retryDelay: 48.52241392311558
+}
+Blog post creation error: Error: Failed to upload file to S3: InvalidBucketName: The specified bucket is not valid.
+    at uploadMarkdown (/home/runner/workspace/server/services/s3Service.ts:32:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes/cmsRoutes.ts:126:9)
+10:08:59 PM [express] POST /api/cms/blog 500 in 1316ms :: {"success":false,"message":"Error creating …

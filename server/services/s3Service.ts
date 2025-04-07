@@ -16,9 +16,17 @@ const bucketName = process.env.AWS_S3_BUCKET || '';
  * @returns The URL of the uploaded file
  */
 export const uploadMarkdown = async (key: string, content: string): Promise<string> => {
+  // Ensure key doesn't start with blog/ already to avoid double prefixing
+  const fullKey = key.startsWith('blog/') ? key : `blog/${key}`;
+  
+  // Validate bucket name before attempting upload
+  if (!bucketName) {
+    throw new Error('AWS_S3_BUCKET environment variable is not set or empty');
+  }
+  
   const params = {
     Bucket: bucketName,
-    Key: `blog/${key}`,
+    Key: fullKey,
     Body: content,
     ContentType: 'text/markdown',
     ACL: 'public-read'
@@ -39,9 +47,17 @@ export const uploadMarkdown = async (key: string, content: string): Promise<stri
  * @returns The markdown content as a string
  */
 export const getMarkdown = async (key: string): Promise<string> => {
+  // Ensure key doesn't start with blog/ already to avoid double prefixing
+  const fullKey = key.startsWith('blog/') ? key : `blog/${key}`;
+  
+  // Validate bucket name before attempting retrieval
+  if (!bucketName) {
+    throw new Error('AWS_S3_BUCKET environment variable is not set or empty');
+  }
+  
   const params = {
     Bucket: bucketName,
-    Key: `blog/${key}`
+    Key: fullKey
   };
 
   try {
@@ -58,9 +74,17 @@ export const getMarkdown = async (key: string): Promise<string> => {
  * @param key The filename/key of the S3 object to delete
  */
 export const deleteMarkdown = async (key: string): Promise<void> => {
+  // Ensure key doesn't start with blog/ already to avoid double prefixing
+  const fullKey = key.startsWith('blog/') ? key : `blog/${key}`;
+  
+  // Validate bucket name before attempting deletion
+  if (!bucketName) {
+    throw new Error('AWS_S3_BUCKET environment variable is not set or empty');
+  }
+  
   const params = {
     Bucket: bucketName,
-    Key: `blog/${key}`
+    Key: fullKey
   };
 
   try {
@@ -83,9 +107,24 @@ export const uploadImage = async (
   buffer: Buffer, 
   contentType: string
 ): Promise<string> => {
+  // Ensure prefix is consistent but not duplicated
+  let fullKey = key;
+  if (!key.startsWith('blog/')) {
+    if (!key.startsWith('images/')) {
+      fullKey = `blog/images/${key}`;
+    } else {
+      fullKey = `blog/${key}`;
+    }
+  }
+  
+  // Validate bucket name before attempting upload
+  if (!bucketName) {
+    throw new Error('AWS_S3_BUCKET environment variable is not set or empty');
+  }
+  
   const params = {
     Bucket: bucketName,
-    Key: `blog/images/${key}`,
+    Key: fullKey,
     Body: buffer,
     ContentType: contentType,
     ACL: 'public-read'

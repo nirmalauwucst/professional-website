@@ -42,6 +42,25 @@ export default function EditBlogPost() {
     staleTime: 0,
   });
 
+  // Fetch post content
+  const { isLoading: isLoadingContent } = useQuery<{ success: boolean, content: string }>({
+    queryKey: [`/api/blog/content/${postData?.post?.s3Key}`],
+    enabled: !!postData?.post?.s3Key,
+    onSuccess: (data) => {
+      if (data?.content) {
+        setContent(data.content);
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to fetch post content:", error);
+      toast({
+        title: "Error fetching content",
+        description: "Unable to load post content. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Populate form data when post is loaded
   useEffect(() => {
     if (postData?.post) {
@@ -52,34 +71,6 @@ export default function EditBlogPost() {
       setPublished(post.published);
       setTags(post.tags);
       setCurrentCoverImageUrl(post.coverImage);
-      
-      // Fetch post content from s3Key
-      const fetchContent = async () => {
-        try {
-          // Get the auth token
-          const token = localStorage.getItem('cms_auth_token');
-          
-          // Prepare headers with auth token if available
-          const headers: Record<string, string> = {};
-          if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-          }
-          
-          const response = await fetch(`/api/blog/content/${post.s3Key}`, {
-            headers,
-            credentials: "include"
-          });
-          
-          if (response.ok) {
-            const contentData = await response.json();
-            setContent(contentData.content);
-          }
-        } catch (error) {
-          console.error("Failed to fetch post content:", error);
-        }
-      };
-      
-      fetchContent();
     }
   }, [postData]);
 
@@ -155,7 +146,7 @@ export default function EditBlogPost() {
     updatePostMutation.mutate();
   };
 
-  if (isLoadingPost) {
+  if (isLoadingPost || isLoadingContent) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

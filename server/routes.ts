@@ -4,10 +4,12 @@ import { storage } from "./storage";
 import { z } from "zod";
 import { insertContactMessageSchema, insertBlogPostSchema } from "@shared/schema";
 import * as s3Service from "./services/s3Service";
+import { getMarkdown } from "./services/s3Service";
 import formidable from "formidable";
 import * as fs from "fs";
 import authRoutes from "./routes/authRoutes";
 import cmsRoutes from "./routes/cmsRoutes";
+import { verifyToken, DecodedToken } from "./services/authService";
 
 // Contact form validation schema
 const contactFormSchema = insertContactMessageSchema.extend({
@@ -391,6 +393,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get blog post content by S3 key
+  app.get('/api/blog/content/:key', async (req, res) => {
+    try {
+      // Check for authentication token, require auth for CMS access
+      let isAuthenticated = false;
+      const authHeader = req.headers.authorization;
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+          const decoded = verifyToken(token) as DecodedToken;
+          
+          if (decoded && decoded.role === 'admin') {
+            isAuthenticated = true;
+          }
+        } catch (tokenError) {
+          console.error('Token verification error:', tokenError);
+          return res.status(401).json({
+            success: false,
+            message: 'Unauthorized: Invalid authentication token'
+          });
+        }
+      }
+      
+      // If not authenticated, return 401
+      if (!isAuthenticated) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized: Authentication required'
+        });
+      }
+      
+      const { key } = req.params;
+      if (!key) {
+        return res.status(400).json({
+          success: false,
+          message: 'Content key is required'
+        });
+      }
+      
+      // Check if AWS environment variables are set
+      if (!process.env.AWS_S3_BUCKET || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+        console.error('AWS configuration is incomplete');
+        return res.status(500).json({
+          success: false,
+          message: 'Server configuration error: AWS S3 not properly configured'
+        });
+      }
+      
+      // Get content from S3
+      const content = await getMarkdown(key);
+      
+      return res.status(200).json({
+        success: true,
+        content
+      });
+    } catch (error: any) {
+      console.error('Error fetching blog content:', error);
+      
+      // Handle specific AWS errors
+      if (error.message && error.message.includes('InvalidBucketName')) {
+        return res.status(500).json({
+          success: false,
+          message: 'S3 bucket configuration error',
+          error: 'The S3 bucket name is invalid or not properly configured'
+        });
+      }
+      
+      // Handle access denied errors
+      if (error.message && error.message.includes('AccessDenied')) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied to S3 resource',
+          error: 'The application does not have permission to access this S3 resource'
+        });
+      }
+      
+      // Handle not found errors
+      if (error.message && error.message.includes('NoSuchKey')) {
+        return res.status(404).json({
+          success: false,
+          message: 'Content not found',
+          error: 'The requested blog content could not be found in storage'
+        });
+      }
+      
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to fetch blog content',
+        error: error.message
+      });
+    }
+  });
+
   // Upload blog image
   app.post('/api/blog/upload-image', async (req, res) => {
     const form = formidable({
