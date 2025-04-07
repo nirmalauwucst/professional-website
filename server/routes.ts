@@ -6,6 +6,8 @@ import { insertContactMessageSchema, insertBlogPostSchema } from "@shared/schema
 import * as s3Service from "./services/s3Service";
 import formidable from "formidable";
 import * as fs from "fs";
+import authRoutes from "./routes/authRoutes";
+import cmsRoutes from "./routes/cmsRoutes";
 
 // Contact form validation schema
 const contactFormSchema = insertContactMessageSchema.extend({
@@ -17,6 +19,11 @@ const contactFormSchema = insertContactMessageSchema.extend({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register authentication routes
+  app.use('/api/auth', authRoutes);
+  
+  // Register CMS routes
+  app.use('/api/cms', cmsRoutes);
   // API endpoint to get all projects
   app.get('/api/projects', async (req, res) => {
     try {

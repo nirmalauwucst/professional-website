@@ -3,6 +3,11 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Add JWT secret to environment if not exists
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'your-jwt-secret-should-be-changed-in-production';
+}
+
 // Users
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -20,6 +25,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   name: true,
   email: true,
+  role: true,
 });
 
 // Projects
