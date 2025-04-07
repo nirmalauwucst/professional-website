@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   activeSection: string;
@@ -9,6 +10,8 @@ interface HeaderProps {
 const Header = ({ activeSection }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [location] = useLocation();
+  const isHomePage = location === "/";
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -20,9 +23,16 @@ const Header = ({ activeSection }: HeaderProps) => {
 
   // Navigate and smooth scroll to section
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (isHomePage) {
+      // If on home page, smooth scroll to the section
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        closeMobileMenu();
+      }
+    } else {
+      // If on another page, navigate to home and append the hash
+      window.location.href = `/#${sectionId}`;
       closeMobileMenu();
     }
   };
@@ -51,11 +61,13 @@ const Header = ({ activeSection }: HeaderProps) => {
     <header className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 z-50 transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <a 
-          href="#" 
+          href="/" 
           className="text-xl font-bold font-poppins text-primary flex items-center space-x-2"
           onClick={(e) => {
-            e.preventDefault();
-            scrollToSection("home");
+            if (isHomePage) {
+              e.preventDefault();
+              scrollToSection("home");
+            }
           }}
         >
           <span className="text-2xl text-accent">&lt;/&gt;</span>
@@ -68,7 +80,7 @@ const Header = ({ activeSection }: HeaderProps) => {
             {navLinks.map((link) => (
               <li key={link.id}>
                 <a 
-                  href={`#${link.id}`} 
+                  href={isHomePage ? `#${link.id}` : `/#${link.id}`} 
                   className={`relative text-primary hover:text-secondary font-medium pb-1 ${
                     activeSection === link.id ? "after:w-full" : "after:w-0"
                   }`}
@@ -113,7 +125,7 @@ const Header = ({ activeSection }: HeaderProps) => {
           {navLinks.map((link) => (
             <li key={link.id}>
               <a 
-                href={`#${link.id}`} 
+                href={isHomePage ? `#${link.id}` : `/#${link.id}`} 
                 className={`block py-2 ${
                   activeSection === link.id ? "text-secondary font-medium" : "text-primary hover:text-secondary"
                 }`}

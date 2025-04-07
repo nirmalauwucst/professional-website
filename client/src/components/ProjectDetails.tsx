@@ -23,9 +23,16 @@ const ProjectDetails = () => {
       <div className="container mx-auto px-6">
         {/* Breadcrumb */}
         <div className="flex items-center text-sm text-gray-500 mb-8">
-          <Link href="/#projects">
-            <a className="hover:text-secondary transition-colors">Projects</a>
-          </Link>
+          <a 
+            href="/#projects" 
+            className="hover:text-secondary transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/#projects";
+            }}
+          >
+            Projects
+          </a>
           <span className="mx-2">/</span>
           <span className="text-gray-700 font-medium">{project.title}</span>
         </div>
@@ -196,7 +203,10 @@ const ProjectDetails = () => {
                 
                 <div className="pt-4">
                   <Button
-                    onClick={() => window.location.href = "/#contact"}
+                    onClick={() => {
+                      // Navigate to home page contact section
+                      window.location.href = "/#contact";
+                    }}
                     className="w-full bg-accent hover:bg-accent/90 text-white"
                   >
                     Discuss This Project
@@ -242,21 +252,26 @@ const PrevNextProjectLink = ({ type, projectId }: { type: "prev" | "next", proje
   }
   
   return (
-    <Link href={`/projects/${targetProject.id}`}>
-      <a className={`group flex items-center ${type === "next" ? "flex-row" : "flex-row-reverse"}`}>
-        <div className={`flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 group-hover:bg-secondary group-hover:text-white transition-colors ${type === "next" ? "mr-4" : "ml-4"}`}>
-          <i className={`ri-arrow-${type === "next" ? "right" : "left"}-line`}></i>
+    <a 
+      href={`/projects/${targetProject.id}`}
+      className={`group flex items-center ${type === "next" ? "flex-row" : "flex-row-reverse"}`}
+      onClick={(e) => {
+        e.preventDefault();
+        window.location.href = `/projects/${targetProject.id}`;
+      }}
+    >
+      <div className={`flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 group-hover:bg-secondary group-hover:text-white transition-colors ${type === "next" ? "mr-4" : "ml-4"}`}>
+        <i className={`ri-arrow-${type === "next" ? "right" : "left"}-line`}></i>
+      </div>
+      <div className={`${type === "next" ? "text-right" : "text-left"}`}>
+        <div className="text-sm text-gray-500">
+          {type === "next" ? "Next Project" : "Previous Project"}
         </div>
-        <div className={`${type === "next" ? "text-right" : "text-left"}`}>
-          <div className="text-sm text-gray-500">
-            {type === "next" ? "Next Project" : "Previous Project"}
-          </div>
-          <div className="font-medium text-gray-900 group-hover:text-secondary transition-colors">
-            {targetProject.title}
-          </div>
+        <div className="font-medium text-gray-900 group-hover:text-secondary transition-colors">
+          {targetProject.title}
         </div>
-      </a>
-    </Link>
+      </div>
+    </a>
   );
 };
 
