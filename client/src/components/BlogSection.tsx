@@ -69,38 +69,36 @@ export default function BlogSection() {
         ) : posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {posts.map((post: BlogPost) => (
-              <Link href={`/blog/${post.slug}`} key={post.id}>
-                <a className="block h-full">
-                  <Card className="h-full hover:shadow-md transition-shadow duration-300">
-                    {post.coverImage && (
-                      <div className="h-40 w-full overflow-hidden">
-                        <img 
-                          src={post.coverImage} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                      <div className="text-sm text-muted-foreground">
-                        {post.publishedAt ? formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true }) : ''}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {post.tags.slice(0, 2).map((tag) => (
-                          <Badge key={tag} variant="secondary">{tag}</Badge>
-                        ))}
-                        {post.tags.length > 2 && (
-                          <Badge variant="outline">+{post.tags.length - 2}</Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </a>
-              </Link>
+              <div key={post.id} className="h-full cursor-pointer" onClick={() => window.location.href = `/blog/${post.slug}`}>
+                <Card className="h-full hover:shadow-md transition-shadow duration-300">
+                  {post.coverImage && (
+                    <div className="h-40 w-full overflow-hidden">
+                      <img 
+                        src={post.coverImage} 
+                        alt={post.title} 
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                  )}
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                    <div className="text-sm text-muted-foreground">
+                      {post.publishedAt ? formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true }) : ''}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {post.tags.slice(0, 2).map((tag) => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                      ))}
+                      {post.tags.length > 2 && (
+                        <Badge variant="outline">+{post.tags.length - 2}</Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         ) : (

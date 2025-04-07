@@ -41,8 +41,14 @@ export const generateToken = (user: User): string => {
  */
 export const verifyToken = (token: string): any => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    console.log(`[verifyToken] Verifying token: ${token.substring(0, 15)}...`);
+    console.log(`[verifyToken] Using JWT_SECRET: ${JWT_SECRET.substring(0, 5)}...`);
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log(`[verifyToken] Token successfully verified`);
+    return decoded;
   } catch (error) {
+    console.error(`[verifyToken] Token verification failed:`, error);
     return null;
   }
 };
@@ -60,9 +66,14 @@ export interface DecodedToken {
  */
 export const isAdmin = (req: any, res: any, next: any) => {
   try {
+    console.log(`[isAdmin] Middleware invoked for ${req.method} ${req.url}`);
+    
     // Get token from authorization header
     const authHeader = req.headers.authorization;
+    console.log(`[isAdmin] Authorization header present: ${!!authHeader}`);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log(`[isAdmin] No Bearer token found`);
       return res.status(401).json({ 
         success: false, 
         message: 'Unauthorized: No token provided' 
@@ -70,7 +81,10 @@ export const isAdmin = (req: any, res: any, next: any) => {
     }
     
     const token = authHeader.split(' ')[1];
+    console.log(`[isAdmin] Token extracted: ${token.substring(0, 15)}...`);
+    
     const decoded = verifyToken(token) as DecodedToken;
+    console.log(`[isAdmin] Token verification result: ${!!decoded}`);
     
     if (!decoded) {
       return res.status(401).json({ 
@@ -79,7 +93,10 @@ export const isAdmin = (req: any, res: any, next: any) => {
       });
     }
     
+    console.log(`[isAdmin] Decoded token info: userId=${decoded.userId}, username=${decoded.username}, role=${decoded.role}`);
+    
     if (decoded.role !== 'admin') {
+      console.log(`[isAdmin] User role (${decoded.role}) is not admin, access denied`);
       return res.status(403).json({ 
         success: false, 
         message: 'Forbidden: Admin access required' 
@@ -88,11 +105,14 @@ export const isAdmin = (req: any, res: any, next: any) => {
     
     // Add user info to request
     req.user = decoded;
+    console.log(`[isAdmin] Admin authorization successful, proceeding to next middleware`);
     next();
   } catch (error) {
+    console.error(`[isAdmin] Error during authentication:`, error);
     return res.status(401).json({ 
       success: false, 
-      message: 'Unauthorized: Authentication failed' 
+      message: 'Unauthorized: Authentication failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };

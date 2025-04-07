@@ -132,10 +132,15 @@ router.post('/blog', async (req, res) => {
         if (files.coverImage && files.coverImage[0]?.filepath) {
           const coverImageFile = files.coverImage[0];
           const buffer = fs.readFileSync(coverImageFile.filepath);
-          const coverImageKey = `blog/images/${slug}-${uuidv4()}.${coverImageFile.mimetype?.split('/')[1] || 'jpg'}`;
+          const extension = coverImageFile.mimetype?.split('/')[1] || 'jpg';
+          const coverImageKey = `blog/images/${slug}-${uuidv4()}.${extension}`;
           
-          // Upload cover image to S3
-          const uploadResult = await uploadMarkdown(coverImageKey, buffer.toString('base64'));
+          // Upload cover image to S3 using uploadImage instead of uploadMarkdown
+          const uploadResult = await uploadImage(
+            coverImageKey,
+            buffer,
+            coverImageFile.mimetype || 'image/jpeg'
+          );
           coverImage = uploadResult;
         }
         
@@ -236,10 +241,15 @@ router.put('/blog/:id', async (req, res) => {
         if (files.coverImage && files.coverImage[0]?.filepath) {
           const coverImageFile = files.coverImage[0];
           const buffer = fs.readFileSync(coverImageFile.filepath);
-          const coverImageKey = `blog/images/${slug || existingPost.slug}-${uuidv4()}.${coverImageFile.mimetype?.split('/')[1] || 'jpg'}`;
+          const extension = coverImageFile.mimetype?.split('/')[1] || 'jpg';
+          const coverImageKey = `blog/images/${slug || existingPost.slug}-${uuidv4()}.${extension}`;
           
-          // Upload cover image to S3
-          const uploadResult = await uploadMarkdown(coverImageKey, buffer.toString('base64'));
+          // Upload cover image to S3 using uploadImage instead of uploadMarkdown
+          const uploadResult = await uploadImage(
+            coverImageKey,
+            buffer,
+            coverImageFile.mimetype || 'image/jpeg'
+          );
           coverImage = uploadResult;
         }
         
@@ -327,10 +337,18 @@ router.delete('/blog/:id', async (req, res) => {
       
       // If there's a cover image, delete it too
       if (post.coverImage) {
-        // Extract S3 key from cover image URL
-        const coverImageKey = post.coverImage.split('/').slice(-2).join('/');
-        if (coverImageKey) {
-          await deleteMarkdown(coverImageKey);
+        try {
+          // Extract S3 key from cover image URL
+          // The location is typically a full URL like https://bucket-name.s3.region.amazonaws.com/blog/images/filename.jpg
+          const urlParts = post.coverImage.split('/');
+          const key = urlParts.slice(3).join('/'); // Skip the https:, empty string, and domain parts
+          
+          if (key) {
+            await deleteMarkdown(key);
+          }
+        } catch (imageError) {
+          // Log image deletion error but continue
+          console.error('Error deleting image from S3:', imageError);
         }
       }
     } catch (s3Error) {

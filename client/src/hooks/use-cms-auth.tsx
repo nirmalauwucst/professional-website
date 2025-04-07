@@ -76,27 +76,41 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
   } = useQuery({
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
+      console.log(`[useQuery /api/auth/me] Checking for authentication token`);
       const token = getToken();
-      if (!token) return null;
+      
+      if (!token) {
+        console.log(`[useQuery /api/auth/me] No token found, skipping request`);
+        return null;
+      }
+      
+      console.log(`[useQuery /api/auth/me] Token found: ${token.substring(0, 15)}...`);
 
       try {
+        console.log(`[useQuery /api/auth/me] Making request to /api/auth/me`);
         const res = await fetch('/api/auth/me', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+        console.log(`[useQuery /api/auth/me] Response status: ${res.status} ${res.statusText}`);
+
         if (!res.ok) {
           if (res.status === 401) {
+            console.log(`[useQuery /api/auth/me] 401 Unauthorized, clearing token`);
             removeToken();
             return null;
           }
+          console.error(`[useQuery /api/auth/me] Request failed with status ${res.status}`);
           throw new Error('Failed to fetch user data');
         }
 
         const data = await res.json();
+        console.log(`[useQuery /api/auth/me] User data retrieved:`, data.user);
         return data.user;
       } catch (error) {
+        console.error(`[useQuery /api/auth/me] Error:`, error);
         removeToken();
         return null;
       }
@@ -108,13 +122,19 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
+      console.log(`[loginMutation] Attempting login for user: ${credentials.username}`);
       const res = await apiRequest('POST', '/api/auth/login', credentials);
       const data = await res.json();
+      console.log(`[loginMutation] Login response:`, data);
       return data as AuthResponse;
     },
     onSuccess: (data) => {
+      console.log(`[loginMutation] Login successful, token received: ${data.token.substring(0, 15)}...`);
+      console.log(`[loginMutation] Setting token in localStorage`);
       setToken(data.token);
+      console.log(`[loginMutation] Refetching user data`);
       refetch();
+      console.log(`[loginMutation] Redirecting to dashboard`);
       setLocation('/admin/dashboard');
       toast({
         title: 'Login successful',
@@ -122,6 +142,7 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error: Error) => {
+      console.error(`[loginMutation] Login failed:`, error);
       toast({
         title: 'Login failed',
         description: error.message,
@@ -133,13 +154,19 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterCredentials) => {
+      console.log(`[registerMutation] Attempting registration for user: ${credentials.username}`);
       const res = await apiRequest('POST', '/api/auth/register-admin', credentials);
       const data = await res.json();
+      console.log(`[registerMutation] Registration response:`, data);
       return data as AuthResponse;
     },
     onSuccess: (data) => {
+      console.log(`[registerMutation] Registration successful, token received: ${data.token.substring(0, 15)}...`);
+      console.log(`[registerMutation] Setting token in localStorage`);
       setToken(data.token);
+      console.log(`[registerMutation] Refetching user data`);
       refetch();
+      console.log(`[registerMutation] Redirecting to dashboard`);
       setLocation('/admin/dashboard');
       toast({
         title: 'Registration successful',
@@ -147,6 +174,7 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error: Error) => {
+      console.error(`[registerMutation] Registration failed:`, error);
       toast({
         title: 'Registration failed',
         description: error.message,
@@ -157,8 +185,12 @@ export function CMSAuthProvider({ children }: { children: ReactNode }) {
 
   // Logout function
   const logout = () => {
+    console.log(`[logout] Logging out user`);
+    console.log(`[logout] Removing token from localStorage`);
     removeToken();
+    console.log(`[logout] Clearing query cache`);
     queryClient.clear();
+    console.log(`[logout] Redirecting to login page`);
     setLocation('/admin/login');
     toast({
       title: 'Logged out',

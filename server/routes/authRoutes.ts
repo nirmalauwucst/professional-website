@@ -156,6 +156,9 @@ router.post('/register-admin', async (req, res) => {
  */
 router.get('/me', isAdmin, async (req, res) => {
   try {
+    console.log('GET /api/auth/me - Headers:', JSON.stringify(req.headers));
+    console.log('GET /api/auth/me - User object:', JSON.stringify(req.user || 'No user found'));
+    
     if (!req.user) {
       return res.status(401).json({
         success: false,

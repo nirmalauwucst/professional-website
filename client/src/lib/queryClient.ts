@@ -7,9 +7,14 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Get auth token from localStorage
+// Get auth token from localStorage with debug logging
 const getCMSAuthToken = (): string | null => {
-  return localStorage.getItem('cms_auth_token');
+  const token = localStorage.getItem('cms_auth_token');
+  console.log(`[getCMSAuthToken] Token ${token ? 'found' : 'not found'} in localStorage`);
+  if (token) {
+    console.log(`[getCMSAuthToken] Token: ${token.substring(0, 15)}...`);
+  }
+  return token;
 };
 
 export async function apiRequest(
@@ -17,6 +22,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  console.log(`[apiRequest] ${method} ${url}`);
+  
   // Get the auth token
   const token = getCMSAuthToken();
   
@@ -26,12 +33,18 @@ export async function apiRequest(
   // Add content type if we have data
   if (data && !(data instanceof FormData)) {
     headers["Content-Type"] = "application/json";
+    console.log(`[apiRequest] Content-Type set to application/json`);
   }
   
   // Add auth token if available
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+    console.log(`[apiRequest] Authorization header set with Bearer token`);
+  } else {
+    console.log(`[apiRequest] No Authorization header set (no token available)`);
   }
+  
+  console.log(`[apiRequest] Request headers:`, headers);
   
   const res = await fetch(url, {
     method,
@@ -40,8 +53,16 @@ export async function apiRequest(
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
-  return res;
+  console.log(`[apiRequest] Response status: ${res.status} ${res.statusText}`);
+  
+  try {
+    await throwIfResNotOk(res);
+    console.log(`[apiRequest] Request successful`);
+    return res;
+  } catch (error) {
+    console.error(`[apiRequest] Request failed:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -50,6 +71,9 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const url = queryKey[0] as string;
+    console.log(`[getQueryFn] Fetching: ${url}`);
+    
     // Get the auth token
     const token = getCMSAuthToken();
     
@@ -57,19 +81,34 @@ export const getQueryFn: <T>(options: {
     const headers: Record<string, string> = {};
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+      console.log(`[getQueryFn] Authorization header set for request to ${url}`);
+    } else {
+      console.log(`[getQueryFn] No Authorization header for request to ${url} (no token available)`);
     }
     
-    const res = await fetch(queryKey[0] as string, {
-      headers,
-      credentials: "include",
-    });
+    console.log(`[getQueryFn] Headers for ${url}:`, headers);
+    
+    try {
+      const res = await fetch(url, {
+        headers,
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      console.log(`[getQueryFn] Response from ${url}: ${res.status} ${res.statusText}`);
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        console.log(`[getQueryFn] Returning null for 401 response (as configured)`);
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      const data = await res.json();
+      console.log(`[getQueryFn] Successful response data from ${url}:`, data);
+      return data;
+    } catch (error) {
+      console.error(`[getQueryFn] Error fetching ${url}:`, error);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

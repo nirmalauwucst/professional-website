@@ -159,45 +159,43 @@ export default function BlogPage() {
           ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post: BlogPost) => (
-                <Link href={`/blog/${post.slug}`} key={post.id}>
-                  <a className="block h-full">
-                    <Card className="overflow-hidden h-full hover:shadow-md transition-shadow duration-300">
-                      {post.coverImage && (
-                        <div className="h-48 w-full overflow-hidden">
-                          <img 
-                            src={post.coverImage} 
-                            alt={post.title} 
-                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                          />
-                        </div>
-                      )}
-                      <CardHeader>
-                        <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                        <div className="text-sm text-muted-foreground">
-                          {post.publishedAt ? formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true }) : ''}
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {post.tags.map((tag) => (
-                            <Badge 
-                              key={tag} 
-                              variant="secondary"
-                              className="cursor-pointer"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleTagClick(tag);
-                              }}
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </a>
-                </Link>
+                <div key={post.id} className="h-full cursor-pointer" onClick={() => window.location.href = `/blog/${post.slug}`}>
+                  <Card className="overflow-hidden h-full hover:shadow-md transition-shadow duration-300">
+                    {post.coverImage && (
+                      <div className="h-48 w-full overflow-hidden">
+                        <img 
+                          src={post.coverImage} 
+                          alt={post.title} 
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <CardHeader>
+                      <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                      <div className="text-sm text-muted-foreground">
+                        {post.publishedAt ? formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true }) : ''}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-4 line-clamp-3">{post.excerpt}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {post.tags.map((tag) => (
+                          <Badge 
+                            key={tag} 
+                            variant="secondary"
+                            className="cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTagClick(tag);
+                            }}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               ))}
             </div>
           ) : (

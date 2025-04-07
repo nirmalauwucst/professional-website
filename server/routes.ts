@@ -20,7 +20,35 @@ const contactFormSchema = insertContactMessageSchema.extend({
   userId: z.number().optional(),
 });
 
+// Debug middleware to log auth headers
+const logAuthHeaders = (req: Request, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  console.log(`Request to ${req.method} ${req.url}`);
+  
+  if (authHeader) {
+    console.log(`Auth header present: ${authHeader.substring(0, 15)}...`);
+    if (authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        console.log(`Token validation: success. User: ${(decoded as DecodedToken).username}, Role: ${(decoded as DecodedToken).role}`);
+      } catch (error) {
+        console.error(`Token validation failed:`, error);
+      }
+    } else {
+      console.log(`Auth header format is invalid`);
+    }
+  } else {
+    console.log(`No auth header present`);
+  }
+  
+  next();
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add auth header logging middleware
+  app.use(logAuthHeaders);
+  
   // Register authentication routes
   app.use('/api/auth', authRoutes);
   
