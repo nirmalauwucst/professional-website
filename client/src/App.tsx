@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Route, Switch, useLocation } from "wouter";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import About from "./components/About";
@@ -8,11 +9,14 @@ import Skills from "./components/Skills";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import ProjectDetailsPage from "./pages/project-details";
+import AllProjectsPage from "./pages/all-projects";
+import NotFound from "./pages/not-found";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 
-function App() {
+const HomePage = () => {
   // State to track active section for navigation highlighting
   const [activeSection, setActiveSection] = useState("home");
 
@@ -42,19 +46,37 @@ function App() {
   }, []);
 
   return (
+    <>
+      <Header activeSection={activeSection} />
+      <main>
+        <Hero />
+        <About />
+        <Services />
+        <Projects />
+        <Skills />
+        <Contact />
+      </main>
+      <Footer />
+      <ScrollToTop />
+    </>
+  );
+};
+
+function App() {
+  const [location] = useLocation();
+  
+  // Only render the Header and Footer on the homepage
+  const isHomePage = location === "/";
+  
+  return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background">
-        <Header activeSection={activeSection} />
-        <main>
-          <Hero />
-          <About />
-          <Services />
-          <Projects />
-          <Skills />
-          <Contact />
-        </main>
-        <Footer />
-        <ScrollToTop />
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/projects" component={AllProjectsPage} />
+          <Route path="/projects/:id" component={ProjectDetailsPage} />
+          <Route component={NotFound} />
+        </Switch>
       </div>
       <Toaster />
     </QueryClientProvider>

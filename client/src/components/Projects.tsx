@@ -116,7 +116,7 @@ const Projects = () => {
                   {project.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <a href="#" className="text-secondary hover:text-blue-700 font-medium text-sm inline-flex items-center group">
+                  <a href={`/projects/${project.id}`} className="text-secondary hover:text-blue-700 font-medium text-sm inline-flex items-center group">
                     View Details
                     <i className="ri-arrow-right-line ml-1 group-hover:translate-x-1 transition-transform"></i>
                   </a>
@@ -141,6 +141,7 @@ const Projects = () => {
         {filteredProjects.length > 6 && (
           <div className="text-center mt-12">
             <Button 
+              onClick={() => window.location.href = "/projects"}
               className="bg-secondary hover:bg-secondary/90 text-white px-5 py-2 rounded-md font-medium inline-flex items-center gap-2 text-sm group"
             >
               View All Projects
