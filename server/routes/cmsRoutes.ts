@@ -392,4 +392,140 @@ router.get('/blog/tags', async (req, res) => {
   }
 });
 
+/**
+ * Get all contact messages
+ * GET /api/cms/contact
+ */
+router.get('/contact', async (req, res) => {
+  try {
+    const messages = await storage.getContactMessages();
+    
+    res.status(200).json({
+      success: true,
+      messages
+    });
+  } catch (error: any) {
+    console.error('Get contact messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching contact messages',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Get a single contact message by ID
+ * GET /api/cms/contact/:id
+ */
+router.get('/contact/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid contact message ID'
+      });
+    }
+    
+    const message = await storage.getContactMessage(id);
+    
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Contact message not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message
+    });
+  } catch (error: any) {
+    console.error('Get contact message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching contact message',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Mark a contact message as read
+ * PATCH /api/cms/contact/:id/read
+ */
+router.patch('/contact/:id/read', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid contact message ID'
+      });
+    }
+    
+    const message = await storage.markContactMessageAsRead(id);
+    
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Contact message not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message
+    });
+  } catch (error: any) {
+    console.error('Mark contact message as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking contact message as read',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * Delete a contact message
+ * DELETE /api/cms/contact/:id
+ */
+router.delete('/contact/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid contact message ID'
+      });
+    }
+    
+    const deleted = await storage.deleteContactMessage(id);
+    
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Contact message not found or could not be deleted'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Contact message deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Delete contact message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting contact message',
+      error: error.message
+    });
+  }
+});
+
 export default router;

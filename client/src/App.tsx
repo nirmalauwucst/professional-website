@@ -25,6 +25,7 @@ import RegisterPage from "./pages/admin/register";
 import DashboardPage from "./pages/admin/dashboard";
 import NewBlogPost from "./pages/admin/blog/new";
 import EditBlogPost from "./pages/admin/blog/edit";
+import MessagesPage from "./pages/admin/messages";
 
 const HomePage = () => {
   // State to track active section for navigation highlighting
@@ -131,6 +132,8 @@ function App() {
             <ProtectedRoute path="/admin/dashboard" component={DashboardPage} />
             <ProtectedRoute path="/admin/blog/new" component={NewBlogPost} />
             <ProtectedRoute path="/admin/blog/edit/:id" component={EditBlogPost} />
+            <ProtectedRoute path="/admin/messages" component={MessagesPage} />
+            <ProtectedRoute path="/admin/blog" component={DashboardPage} />
             
             {/* 404 Route */}
             <Route component={NotFound} />
