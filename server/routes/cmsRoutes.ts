@@ -109,7 +109,9 @@ router.post('/blog', async (req, res) => {
       const tags = fields.tags?.[0] ? JSON.parse(fields.tags[0]) : [];
       const published = fields.published?.[0] === 'true';
       const readTime = parseInt(fields.readTime?.[0] || '5');
-      const authorId = parseInt(fields.authorId?.[0] || '0');
+      
+      // Use the authenticated user's ID as the author ID
+      const authorId = req.user?.userId || 1; // Default to 1 if for some reason user ID is not available
       
       if (!title || !excerpt || !content || !slug) {
         return res.status(400).json({
@@ -219,6 +221,9 @@ router.put('/blog/:id', async (req, res) => {
       const tags = fields.tags?.[0] ? JSON.parse(fields.tags[0]) : undefined;
       const published = fields.published?.[0] === 'true';
       const readTime = fields.readTime?.[0] ? parseInt(fields.readTime[0]) : undefined;
+      
+      // Make sure we don't try to update the author ID
+      // Existing blog post already has the correct author ID
       
       try {
         // If content changed, update the markdown file in S3
