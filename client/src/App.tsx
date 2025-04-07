@@ -7,10 +7,13 @@ import Services from "./components/Services";
 import Projects from "./components/Projects";
 import Skills from "./components/Skills";
 import Contact from "./components/Contact";
+import BlogSection from "./components/BlogSection";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
 import ProjectDetailsPage from "./pages/project-details";
 import AllProjectsPage from "./pages/all-projects";
+import BlogPage from "./pages/blog";
+import BlogPostPage from "./pages/blog-post";
 import NotFound from "./pages/not-found";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -88,6 +91,7 @@ const HomePage = () => {
         <Services />
         <Projects />
         <Skills />
+        <BlogSection />
         <Contact />
       </main>
       <Footer />
@@ -109,6 +113,8 @@ function App() {
           <Route path="/" component={HomePage} />
           <Route path="/projects" component={AllProjectsPage} />
           <Route path="/projects/:id" component={ProjectDetailsPage} />
+          <Route path="/blog" component={BlogPage} />
+          <Route path="/blog/:slug" component={BlogPostPage} />
           <Route component={NotFound} />
         </Switch>
       </div>

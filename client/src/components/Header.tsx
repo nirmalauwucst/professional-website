@@ -21,8 +21,31 @@ const Header = ({ activeSection }: HeaderProps) => {
     setMobileMenuOpen(false);
   };
 
-  // Navigate and smooth scroll to section
+  // Navigate and smooth scroll to section or page
   const scrollToSection = (sectionId: string) => {
+    // Special handling for blog section - direct to blog page
+    if (sectionId === "blog" && !isHomePage) {
+      // Already on a different page, go directly to blog page
+      window.location.href = "/blog";
+      closeMobileMenu();
+      return;
+    }
+    
+    if (sectionId === "blog" && isHomePage) {
+      // On home page, either scroll to blog section or navigate to blog page
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Blog section exists on homepage, scroll to it
+        element.scrollIntoView({ behavior: "smooth" });
+        closeMobileMenu();
+      } else {
+        // No blog section on homepage, navigate to blog page
+        window.location.href = "/blog";
+        closeMobileMenu();
+      }
+      return;
+    }
+    
     if (isHomePage) {
       // If on home page, smooth scroll to the section
       const element = document.getElementById(sectionId);
@@ -55,6 +78,7 @@ const Header = ({ activeSection }: HeaderProps) => {
     { id: "services", label: "Services" },
     { id: "projects", label: "Projects" },
     { id: "skills", label: "Skills" },
+    { id: "blog", label: "Blog" },
     { id: "contact", label: "Contact" },
   ];
 

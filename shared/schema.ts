@@ -155,6 +155,42 @@ export const insertContactMessageSchema = createInsertSchema(contactMessages).pi
   userId: true,
 });
 
+// Blog Posts
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  coverImage: text("cover_image"),
+  s3Key: text("s3_key").notNull(),
+  publishedAt: timestamp("published_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  published: boolean("published").notNull().default(false),
+  authorId: integer("author_id").references(() => users.id).notNull(),
+  tags: text("tags").array().notNull().default([]),
+  readTime: integer("read_time").notNull().default(5),
+});
+
+export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
+  author: one(users, {
+    fields: [blogPosts.authorId],
+    references: [users.id],
+  }),
+}));
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
+  slug: true,
+  title: true, 
+  excerpt: true,
+  coverImage: true,
+  s3Key: true,
+  publishedAt: true,
+  published: true,
+  authorId: true,
+  tags: true,
+  readTime: true,
+});
+
 // Type definitions
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -174,9 +210,13 @@ export type Skill = typeof skills.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;
 
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
+
 // Define users relations after all tables and relations are defined
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
   services: many(services),
   messages: many(contactMessages),
+  blogPosts: many(blogPosts),
 }));

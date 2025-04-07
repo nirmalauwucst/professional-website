@@ -1,14 +1,15 @@
 import { 
-  users, projects, services, skills, skillGroups, contactMessages, 
+  users, projects, services, skills, skillGroups, contactMessages, blogPosts,
   type User, type InsertUser, 
   type Project, type InsertProject,
   type Service, type InsertService,
   type Skill, type InsertSkill,
   type SkillGroup, type InsertSkillGroup,
-  type ContactMessage, type InsertContactMessage
+  type ContactMessage, type InsertContactMessage,
+  type BlogPost, type InsertBlogPost
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc, and, like, asc, or, sql } from "drizzle-orm";
 
 // Expanded storage interface for all our models
 export interface IStorage {
@@ -50,6 +51,24 @@ export interface IStorage {
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   markContactMessageAsRead(id: number): Promise<ContactMessage | undefined>;
   deleteContactMessage(id: number): Promise<boolean>;
+  
+  // Blog post methods
+  getBlogPosts(options?: {
+    published?: boolean;
+    tag?: string;
+    limit?: number;
+    page?: number;
+    searchQuery?: string;
+  }): Promise<{
+    posts: BlogPost[];
+    total: number;
+  }>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  getBlogPost(id: number): Promise<BlogPost | undefined>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: number): Promise<boolean>;
+  getBlogTags(): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -215,6 +234,130 @@ export class DatabaseStorage implements IStorage {
   async deleteContactMessage(id: number): Promise<boolean> {
     await db.delete(contactMessages).where(eq(contactMessages.id, id));
     return true;
+  }
+  
+  // Blog post methods
+  async getBlogPosts(options?: {
+    published?: boolean;
+    tag?: string;
+    limit?: number;
+    page?: number;
+    searchQuery?: string;
+  }): Promise<{
+    posts: BlogPost[];
+    total: number;
+  }> {
+    const {
+      published = true,
+      tag,
+      limit = 10,
+      page = 1,
+      searchQuery,
+    } = options || {};
+    
+    const offset = (page - 1) * limit;
+    
+    let whereConditions = [];
+    
+    // Only return published posts if requested
+    if (published !== undefined) {
+      whereConditions.push(eq(blogPosts.published, published));
+    }
+    
+    // Filter by tag if provided
+    if (tag) {
+      // We use SQL to check if the tag array contains the specified tag
+      whereConditions.push(sql`${blogPosts.tags} @> ARRAY[${tag}]::text[]`);
+    }
+    
+    // Add search query filter if provided
+    if (searchQuery) {
+      whereConditions.push(
+        or(
+          like(blogPosts.title, `%${searchQuery}%`),
+          like(blogPosts.excerpt, `%${searchQuery}%`)
+        )
+      );
+    }
+    
+    // Combine all conditions
+    const whereCondition = whereConditions.length > 0
+      ? and(...whereConditions)
+      : undefined;
+    
+    // Execute query with conditions
+    const posts = await db
+      .select()
+      .from(blogPosts)
+      .where(whereCondition)
+      .orderBy(desc(blogPosts.publishedAt))
+      .limit(limit)
+      .offset(offset);
+    
+    // Get total posts count for pagination
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(blogPosts)
+      .where(whereCondition);
+    
+    return {
+      posts,
+      total: Number(count),
+    };
+  }
+  
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post || undefined;
+  }
+  
+  async getBlogPost(id: number): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post || undefined;
+  }
+  
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const [newPost] = await db.insert(blogPosts).values(post).returning();
+    return newPost;
+  }
+  
+  async updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
+    // Always update the updatedAt timestamp when editing a post
+    const updateData = {
+      ...post,
+      updatedAt: new Date(),
+    };
+    
+    const [updatedPost] = await db
+      .update(blogPosts)
+      .set(updateData)
+      .where(eq(blogPosts.id, id))
+      .returning();
+    
+    return updatedPost || undefined;
+  }
+  
+  async deleteBlogPost(id: number): Promise<boolean> {
+    await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    return true;
+  }
+  
+  async getBlogTags(): Promise<string[]> {
+    // Get all posts and extract unique tags
+    const posts = await db.select().from(blogPosts);
+    
+    // Create a Set to store unique tags
+    const uniqueTags = new Set<string>();
+    
+    // Iterate through all posts and their tags
+    for (const post of posts) {
+      for (const tag of post.tags) {
+        uniqueTags.add(tag);
+      }
+    }
+    
+    // Convert Set to Array and sort
+    return Array.from(uniqueTags).sort();
   }
 }
 
