@@ -141,10 +141,10 @@ const Projects = () => {
         {filteredProjects.length > 6 && (
           <div className="text-center mt-12">
             <Button 
-              className="bg-secondary hover:bg-blue-600 text-white px-8 py-6 h-auto rounded-md font-medium inline-flex items-center group transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+              className="bg-secondary hover:bg-secondary/90 text-white px-5 py-2 rounded-md font-medium inline-flex items-center gap-2 text-sm group"
             >
               View All Projects
-              <i className="ri-arrow-right-line ml-2 group-hover:translate-x-1 transition-transform"></i>
+              <i className="ri-arrow-right-line text-base group-hover:translate-x-1 transition-transform"></i>
             </Button>
           </div>
         )}

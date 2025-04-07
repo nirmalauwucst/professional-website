@@ -69,17 +69,17 @@ const About = () => {
             
             <div className="flex flex-wrap gap-4">
               <Button 
-                className="bg-secondary hover:bg-blue-600 text-white px-6 py-6 h-auto rounded-md font-medium inline-flex items-center group transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                className="bg-secondary hover:bg-secondary/90 text-white px-5 py-2 rounded-md font-medium inline-flex items-center gap-2 text-sm"
               >
-                <i className="ri-download-line mr-2"></i>
+                <i className="ri-download-line text-base"></i>
                 Download Resume
               </Button>
               <Button 
                 variant="outline"
-                className="border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-6 h-auto rounded-md font-medium inline-flex items-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                className="border border-primary text-primary hover:bg-primary/5 px-5 py-2 rounded-md font-medium inline-flex items-center gap-2 text-sm"
                 onClick={() => scrollToSection("contact")}
               >
-                <i className="ri-chat-1-line mr-2"></i>
+                <i className="ri-chat-1-line text-base"></i>
                 Get in Touch
               </Button>
             </div>

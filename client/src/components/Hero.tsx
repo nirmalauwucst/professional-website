@@ -32,15 +32,15 @@ const Hero = () => {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button 
-                  className="bg-secondary hover:bg-blue-600 text-white px-8 py-6 h-auto rounded-md font-medium inline-flex items-center group transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                  className="bg-secondary hover:bg-secondary/90 text-white px-5 py-2 rounded-md font-medium inline-flex items-center gap-2 transition-all duration-300 hover:gap-3 text-sm"
                   onClick={() => scrollToSection("projects")}
                 >
                   View Projects
-                  <i className="ri-arrow-right-line ml-2 group-hover:translate-x-1 transition-transform"></i>
+                  <i className="ri-arrow-right-line text-base"></i>
                 </Button>
                 <Button 
                   variant="outline"
-                  className="border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-6 h-auto rounded-md font-medium inline-flex items-center transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                  className="border border-primary text-primary hover:bg-primary/5 px-5 py-2 rounded-md font-medium inline-flex items-center text-sm"
                   onClick={() => scrollToSection("contact")}
                 >
                   Contact Me
