@@ -204,8 +204,9 @@ const ProjectDetails = () => {
                 <div className="pt-4">
                   <Button
                     onClick={() => {
-                      // Navigate to home page contact section
-                      window.location.href = "/#contact";
+                      // Force navigation to home page first, then to the contact section
+                      sessionStorage.setItem('scrollToContact', 'true');
+                      window.location.href = "/";
                     }}
                     className="w-full bg-accent hover:bg-accent/90 text-white"
                   >

@@ -44,6 +44,23 @@ const HomePage = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+  
+  // Check for scrollToContact in sessionStorage when component mounts
+  useEffect(() => {
+    const shouldScrollToContact = sessionStorage.getItem('scrollToContact');
+    if (shouldScrollToContact === 'true') {
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        // Add a small delay to ensure the page is fully loaded
+        setTimeout(() => {
+          contactSection.scrollIntoView({ behavior: 'smooth' });
+          setActiveSection('contact');
+          // Remove the flag from sessionStorage
+          sessionStorage.removeItem('scrollToContact');
+        }, 500);
+      }
+    }
+  }, []);
 
   return (
     <>

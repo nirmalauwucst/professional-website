@@ -47,9 +47,16 @@ const AllProjectsPage = () => {
         <div className="container mx-auto px-6">
           {/* Breadcrumb */}
           <div className="flex items-center text-sm text-gray-500 mb-8">
-            <Link href="/">
-              <a className="hover:text-secondary transition-colors">Home</a>
-            </Link>
+            <a 
+              href="/" 
+              className="hover:text-secondary transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/";
+              }}
+            >
+              Home
+            </a>
             <span className="mx-2">/</span>
             <span className="text-gray-700 font-medium">All Projects</span>
           </div>
@@ -134,7 +141,14 @@ const AllProjectsPage = () => {
                     {project.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <a href={`/projects/${project.id}`} className="text-secondary hover:text-blue-700 font-medium text-sm inline-flex items-center group">
+                    <a 
+                      href={`/projects/${project.id}`} 
+                      className="text-secondary hover:text-blue-700 font-medium text-sm inline-flex items-center group"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = `/projects/${project.id}`;
+                      }}
+                    >
                       View Details
                       <i className="ri-arrow-right-line ml-1 group-hover:translate-x-1 transition-transform"></i>
                     </a>
@@ -184,12 +198,17 @@ const AllProjectsPage = () => {
           
           {/* Back to Home Button */}
           <div className="text-center mt-16">
-            <Link href="/">
-              <a className="inline-flex items-center gap-2 text-gray-600 hover:text-secondary transition-colors group">
-                <i className="ri-arrow-left-line group-hover:-translate-x-1 transition-transform"></i>
-                <span className="font-medium">Back to Homepage</span>
-              </a>
-            </Link>
+            <a 
+              href="/" 
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-secondary transition-colors group"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/";
+              }}
+            >
+              <i className="ri-arrow-left-line group-hover:-translate-x-1 transition-transform"></i>
+              <span className="font-medium">Back to Homepage</span>
+            </a>
           </div>
         </div>
       </section>
