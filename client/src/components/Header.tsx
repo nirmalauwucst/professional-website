@@ -31,8 +31,9 @@ const Header = ({ activeSection }: HeaderProps) => {
         closeMobileMenu();
       }
     } else {
-      // If on another page, navigate to home and append the hash
-      window.location.href = `/#${sectionId}`;
+      // If on another page, navigate to home then to specific section using sessionStorage
+      sessionStorage.setItem('scrollToSection', sectionId);
+      window.location.href = "/";
       closeMobileMenu();
     }
   };
@@ -67,6 +68,9 @@ const Header = ({ activeSection }: HeaderProps) => {
             if (isHomePage) {
               e.preventDefault();
               scrollToSection("home");
+            } else {
+              e.preventDefault();
+              window.location.href = "/";
             }
           }}
         >

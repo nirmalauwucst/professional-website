@@ -45,8 +45,25 @@ const HomePage = () => {
     };
   }, []);
   
-  // Check for scrollToContact in sessionStorage when component mounts
+  // Check for scrollToSection or scrollToContact in sessionStorage when component mounts
   useEffect(() => {
+    // Check for specific section navigation from sessionStorage
+    const sectionToScrollTo = sessionStorage.getItem('scrollToSection');
+    if (sectionToScrollTo) {
+      const section = document.getElementById(sectionToScrollTo);
+      if (section) {
+        // Add a small delay to ensure the page is fully loaded
+        setTimeout(() => {
+          section.scrollIntoView({ behavior: 'smooth' });
+          setActiveSection(sectionToScrollTo);
+          // Remove the flag from sessionStorage
+          sessionStorage.removeItem('scrollToSection');
+        }, 500);
+      }
+      return; // Exit early if we're handling section navigation
+    }
+    
+    // Check for contact form navigation
     const shouldScrollToContact = sessionStorage.getItem('scrollToContact');
     if (shouldScrollToContact === 'true') {
       const contactSection = document.getElementById('contact');
