@@ -1,0 +1,314 @@
+Personal Website
+1. Purpose of the Website
+Develop a professional website that reflects:
+Personal and professional background
+
+
+Technical and entrepreneurial achievements
+
+
+Portfolio of projects/products
+
+
+Services offered or consulting opportunities
+
+
+Blog and knowledge sharing
+
+
+Contact and networking capabilities
+
+
+
+2. Target Audience
+The site should be designed to engage:
+Potential employers and recruiters
+
+
+Clients or business collaborators
+
+
+Investors or tech partners
+
+
+Tech enthusiasts and developers
+
+
+Personal followers and readers
+
+
+
+3. Key Features and Functional Requirements
+Homepage
+Purpose: Introduce the user professionally and direct visitors to key sections.
+Components:
+Hero section with name, title, and short tagline
+
+
+Highlight of current role or venture with logo and link
+
+
+Call-to-action buttons: View Portfolio, Download Resume, Contact Me
+
+
+Development Notes:
+Layout using Flexbox
+
+
+Smooth scroll or route-based navigation
+
+
+Optional animations using CSS or Framer Motion
+
+
+
+About Me
+Purpose: Provide a detailed overview of personal and professional background.
+Components:
+Biography and personal story
+
+
+Summary of technical stack and experience
+
+
+Professional profile photo
+
+
+Resume/CV download button
+
+
+Development Notes:
+Flexbox two-column layout (text + image)
+
+
+Resume stored as static file in public directory
+
+
+Styled buttons for resume download
+
+
+
+Portfolio / Projects
+Purpose: Showcase selected professional and personal work.
+Components:
+Project title and description
+
+
+Tech stack tags
+
+
+Key achievements or impact
+
+
+Screenshots or live demo links
+
+
+GitHub or Bitbucket links
+
+
+Optional filter by technology or domain
+
+
+Development Notes:
+Fetch data from Sanity CMS using GROQ
+
+
+Flexbox grid layout for project cards
+
+
+Use CMS for dynamic content updates
+
+
+
+Ventures / Startups
+Purpose: Highlight entrepreneurial ventures and contributions.
+Components:
+Venture logo and name
+
+
+Mission and description
+
+
+Your role or founder story
+
+
+Links to external websites
+
+
+Development Notes:
+Venture data fetched from Sanity CMS
+
+
+Responsive Flexbox card layout
+
+
+External links should open in a new tab
+
+
+
+Blog / Articles
+Purpose: Share insights, experiences, and guides with visitors.
+Components:
+Blog post listing with categories/tags
+
+
+Individual post pages
+
+
+Optional newsletter signup field
+
+
+Development Notes:
+Fetch blog posts from Sanity CMS using GROQ
+
+
+Use a Markdown or rich text renderer for content
+
+
+Route format: /blog/:slug
+
+
+
+Tech Stack / Skills
+Purpose: Visually display technical expertise.
+Components:
+Skills grouped by: Languages, Frameworks, Tools, Platforms
+
+
+Icons or badges for each skill
+
+
+Optional proficiency levels
+
+
+Development Notes:
+Layout using Flexbox with responsive wrapping
+
+
+Icons can be from Devicon or similar libraries
+
+
+Data can be hardcoded or fetched from CMS
+
+
+
+Resume / CV
+Purpose: Provide easy access to resume or career highlights.
+Components:
+Download button for PDF resume
+
+
+Optional interactive timeline of career and education
+
+
+Development Notes:
+PDF stored under public directory
+
+
+Optional use of timeline component for rendering experience
+
+
+
+Contact
+Purpose: Allow visitors to connect, ask questions, or schedule meetings.
+Components:
+Contact form (name, email, message)
+
+
+Embedded calendar scheduling via Calendly
+
+
+Static contact details (email, LinkedIn, GitHub)
+
+
+Development Notes:
+Form POSTs to Express.js backend endpoint: /api/contact
+
+
+Front-end and back-end input validation and sanitization
+
+
+Display success/failure messages
+
+
+Embed Calendly via iframe
+
+
+
+4. Design Requirements
+Theme & Aesthetics:
+Clean, modern, professional design
+
+
+Mobile-first responsive layout
+
+
+Optional support for light/dark mode
+
+
+Use of consistent typography and brand colors
+
+
+UI & Interaction:
+Sticky or fixed navigation bar
+
+
+Smooth transitions and animations
+
+
+Interactive components (e.g., hover effects)
+
+
+Prominent call-to-action buttons
+
+
+
+5. Technical Requirements
+Front-End
+React (main framework)
+
+
+Styling via Tailwind CSS, Bootstrap, Flexbox, or CSS Grid
+
+
+Sanity CMS integration for dynamic content
+
+
+Back-End
+Node.js with Express
+
+
+Endpoint for contact form submission and validation
+
+
+Deployment
+Hosted on AWS S3 as a static site
+
+
+Custom domain (e.g., nirmala.dev or nirmala.tech)
+
+
+HTTPS enabled
+
+
+SEO optimized with metadata and sitemap
+
+
+Web analytics using Google Analytics or Plausible
+
+
+Integrations
+GitHub / GitLab / Bitbucket for code links
+
+
+LinkedIn, Twitter, Medium, DEV Community for social links
+
+
+Mailchimp or Substack for newsletters
+
+
+Calendly for scheduling
+
+
+
+
