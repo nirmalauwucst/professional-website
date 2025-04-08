@@ -569,6 +569,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Add local storage routes for fallback mode
+  const { localImageStorage, localMarkdownStorage } = s3Service.getLocalStorage();
+  
+  // Local storage endpoint for markdown
+  app.get('/api/local-storage/markdown/:key', (req, res) => {
+    const { key } = req.params;
+    const sanitizedKey = key.replace(/-/g, '/');
+    
+    if (sanitizedKey in localMarkdownStorage) {
+      console.log(`Serving markdown from local storage: ${sanitizedKey}`);
+      return res.status(200).send(localMarkdownStorage[sanitizedKey].content);
+    }
+    
+    return res.status(404).json({
+      success: false,
+      message: 'Markdown file not found in local storage'
+    });
+  });
+  
+  // Local storage endpoint for images
+  app.get('/api/local-storage/images/:key', (req, res) => {
+    const { key } = req.params;
+    const sanitizedKey = key.replace(/-/g, '/');
+    
+    if (sanitizedKey in localImageStorage) {
+      const { buffer, contentType } = localImageStorage[sanitizedKey];
+      console.log(`Serving image from local storage: ${sanitizedKey}`);
+      
+      res.set('Content-Type', contentType);
+      return res.status(200).send(buffer);
+    }
+    
+    return res.status(404).json({
+      success: false,
+      message: 'Image not found in local storage'
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

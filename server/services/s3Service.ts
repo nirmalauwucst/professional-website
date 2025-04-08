@@ -1,34 +1,48 @@
 import AWS from "aws-sdk";
 
+// Create a fallback mechanism for when AWS S3 is not properly configured
+const FALLBACK_MODE = !process.env.AWS_S3_BUCKET || 
+                     !process.env.AWS_ACCESS_KEY_ID || 
+                     !process.env.AWS_SECRET_ACCESS_KEY || 
+                     !process.env.AWS_REGION;
+
 // Additional debugging for S3 configuration
 const region = process.env.AWS_REGION;
-const bucketName = process.env.AWS_S3_BUCKET || "";
+const bucketName = process.env.AWS_S3_BUCKET || "nmad-blog-post-storage";
 
 // Log S3 configuration but mask sensitive data
 console.log(`S3 Configuration: 
 - Region: ${region || 'Not set'}
 - Bucket: ${bucketName || 'Not set'}
 - Access Key ID: ${process.env.AWS_ACCESS_KEY_ID ? '****' + process.env.AWS_ACCESS_KEY_ID.slice(-4) : 'Not set'}
-- Secret Access Key: ${process.env.AWS_SECRET_ACCESS_KEY ? '****' : 'Not set'}`);
-
-// Validate S3 bucket name format
-if (bucketName) {
-  // Bucket names must be between 3 and 63 characters long and can only contain 
-  // lowercase letters, numbers, periods, and hyphens
-  const bucketNameRegex = /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/;
-  if (!bucketNameRegex.test(bucketName)) {
-    console.error(`WARNING: Invalid bucket name format: "${bucketName}". 
-S3 bucket names must be between 3 and 63 characters long and can only contain 
-lowercase letters, numbers, periods, and hyphens.`);
-  }
-}
+- Secret Access Key: ${process.env.AWS_SECRET_ACCESS_KEY ? '****' : 'Not set'}
+- Using Fallback Mode: ${FALLBACK_MODE ? 'Yes' : 'No'}`);
 
 // Initialize S3 with environment variables
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region,
-});
+let s3: AWS.S3;
+try {
+  s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region,
+    signatureVersion: 'v4'
+  });
+} catch (error) {
+  console.error("Error initializing S3 client:", error);
+  // Create a dummy S3 client for fallback mode
+  s3 = {} as AWS.S3;
+}
+
+// Local storage for fallback mode
+const localImageStorage: Record<string, {buffer: Buffer, contentType: string, url: string}> = {};
+const localMarkdownStorage: Record<string, {content: string, url: string}> = {};
+
+// Generate a local URL for fallback mode
+const generateLocalUrl = (key: string, isImage: boolean = false): string => {
+  const baseUrl = `/api/local-storage/${isImage ? 'images' : 'markdown'}`;
+  const sanitizedKey = key.replace(/\//g, '-');
+  return `${baseUrl}/${sanitizedKey}`;
+};
 
 /**
  * Uploads a markdown file to S3
@@ -40,20 +54,28 @@ export const uploadMarkdown = async (
   key: string,
   content: string,
 ): Promise<string> => {
+  console.log(`Attempting to upload markdown with key: ${key}`);
+  
+  // If in fallback mode, store locally
+  if (FALLBACK_MODE) {
+    console.log(`Using fallback storage for markdown: ${key}`);
+    const localUrl = generateLocalUrl(key);
+    localMarkdownStorage[key] = {
+      content,
+      url: localUrl
+    };
+    return localUrl;
+  }
+  
   // Ensure key doesn't start with blog/ already to avoid double prefixing
   const fullKey = key.startsWith("blog/") ? key : `blog/${key}`;
-
-  // Validate bucket name before attempting upload
-  if (!bucketName) {
-    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
-  }
 
   const params = {
     Bucket: bucketName,
     Key: fullKey,
     Body: content,
     ContentType: "text/markdown",
-    //ACL: 'public-read'
+    ACL: 'public-read'
   };
 
   try {
@@ -70,15 +92,23 @@ export const uploadMarkdown = async (
     console.error("Error uploading to S3:", error);
     
     // Add more detailed error logging
-    if (error.code === 'InvalidBucketName') {
+    const typedError = error as { code?: string };
+    if (typedError.code === 'InvalidBucketName') {
       console.error(`The bucket name "${params.Bucket}" is invalid. S3 bucket names must be between 3 and 63 characters long and can only contain lowercase letters, numbers, periods, and hyphens.`);
-    } else if (error.code === 'NoSuchBucket') {
+    } else if (typedError.code === 'NoSuchBucket') {
       console.error(`The bucket "${params.Bucket}" does not exist or you do not have access to it.`);
-    } else if (error.code === 'NetworkingError') {
+    } else if (typedError.code === 'NetworkingError') {
       console.error(`Network error occurred. Please check your internet connection and AWS region settings.`);
     }
     
-    throw new Error(`Failed to upload file to S3: ${error}`);
+    // Switch to fallback mode for this upload
+    console.log(`Switching to fallback storage after S3 error for: ${key}`);
+    const localUrl = generateLocalUrl(key);
+    localMarkdownStorage[key] = {
+      content,
+      url: localUrl
+    };
+    return localUrl;
   }
 };
 
@@ -88,13 +118,19 @@ export const uploadMarkdown = async (
  * @returns The markdown content as a string
  */
 export const getMarkdown = async (key: string): Promise<string> => {
+  // Check if we have this in local storage first
+  if (key in localMarkdownStorage) {
+    console.log(`Serving markdown from local storage: ${key}`);
+    return localMarkdownStorage[key].content;
+  }
+
+  if (FALLBACK_MODE) {
+    console.error(`Cannot retrieve markdown from S3: AWS not configured and content not in local storage: ${key}`);
+    return "Content not available";
+  }
+
   // Ensure key doesn't start with blog/ already to avoid double prefixing
   const fullKey = key.startsWith("blog/") ? key : `blog/${key}`;
-
-  // Validate bucket name before attempting retrieval
-  if (!bucketName) {
-    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
-  }
 
   const params = {
     Bucket: bucketName,
@@ -106,7 +142,7 @@ export const getMarkdown = async (key: string): Promise<string> => {
     return response.Body?.toString() || "";
   } catch (error) {
     console.error("Error fetching from S3:", error);
-    throw new Error(`Failed to fetch file from S3: ${error}`);
+    return "Error retrieving content";
   }
 };
 
@@ -115,13 +151,20 @@ export const getMarkdown = async (key: string): Promise<string> => {
  * @param key The filename/key of the S3 object to delete
  */
 export const deleteMarkdown = async (key: string): Promise<void> => {
+  // Remove from local storage if present
+  if (key in localMarkdownStorage) {
+    console.log(`Deleting markdown from local storage: ${key}`);
+    delete localMarkdownStorage[key];
+    return;
+  }
+
+  if (FALLBACK_MODE) {
+    console.log(`Skipping S3 deletion in fallback mode: ${key}`);
+    return;
+  }
+
   // Ensure key doesn't start with blog/ already to avoid double prefixing
   const fullKey = key.startsWith("blog/") ? key : `blog/${key}`;
-
-  // Validate bucket name before attempting deletion
-  if (!bucketName) {
-    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
-  }
 
   const params = {
     Bucket: bucketName,
@@ -130,9 +173,9 @@ export const deleteMarkdown = async (key: string): Promise<void> => {
 
   try {
     await s3.deleteObject(params).promise();
+    console.log(`Successfully deleted from S3: ${fullKey}`);
   } catch (error) {
     console.error("Error deleting from S3:", error);
-    throw new Error(`Failed to delete file from S3: ${error}`);
   }
 };
 
@@ -148,21 +191,19 @@ export const uploadImage = async (
   buffer: Buffer,
   contentType: string,
 ): Promise<string> => {
-  // Check for valid environment variables
-  if (!bucketName) {
-    console.error("AWS_S3_BUCKET environment variable is not set or empty");
-    throw new Error("AWS_S3_BUCKET environment variable is not set or empty");
+  console.log(`Attempting to upload image with key: ${key}`);
+  
+  // If in fallback mode, store locally
+  if (FALLBACK_MODE) {
+    console.log(`Using fallback storage for image: ${key}`);
+    const localUrl = generateLocalUrl(key, true);
+    localImageStorage[key] = {
+      buffer,
+      contentType,
+      url: localUrl
+    };
+    return localUrl;
   }
-
-  if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
-    console.error("One or more AWS environment variables are missing");
-    throw new Error("AWS configuration is incomplete. Please check AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION");
-  }
-
-  // Log bucket name with format validation for debugging
-  const bucketNameRegex = /^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/;
-  const isValidBucketName = bucketNameRegex.test(bucketName);
-  console.log(`Bucket name validation for "${bucketName}": ${isValidBucketName ? 'Valid' : 'Invalid'}`);
 
   // Ensure prefix is consistent but not duplicated
   let fullKey = key;
@@ -179,7 +220,7 @@ export const uploadImage = async (
     Key: fullKey,
     Body: buffer,
     ContentType: contentType,
-    //ACL: 'public-read'
+    ACL: 'public-read'
   };
 
   try {
@@ -188,15 +229,14 @@ export const uploadImage = async (
     - Key: ${params.Key}
     - Content Type: ${params.ContentType}
     - Content Length: ${buffer.length} bytes
-    - Region: ${process.env.AWS_REGION}`);
+    - Region: ${process.env.AWS_REGION || 'Not set'}`);
     
     const response = await s3.upload(params).promise();
-    console.log(`Successfully uploaded image to S3. Location: ${response.Location}`);
+    console.log(`Successfully uploaded image to S3. Location: ${response.Location || 'No location returned'}`);
     
     // If the response doesn't include a Location, construct one
     if (!response.Location) {
-      const region = process.env.AWS_REGION;
-      const constructedUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fullKey}`;
+      const constructedUrl = `https://${bucketName}.s3.${region || 'us-east-1'}.amazonaws.com/${fullKey}`;
       console.log(`No location in response, using constructed URL: ${constructedUrl}`);
       return constructedUrl;
     }
@@ -206,14 +246,29 @@ export const uploadImage = async (
     console.error("Error uploading image to S3:", error);
     
     // Add more detailed error logging
-    if (error.code === 'InvalidBucketName') {
+    const typedError = error as { code?: string };
+    if (typedError.code === 'InvalidBucketName') {
       console.error(`The bucket name "${params.Bucket}" is invalid. S3 bucket names must be between 3 and 63 characters long and can only contain lowercase letters, numbers, periods, and hyphens.`);
-    } else if (error.code === 'NoSuchBucket') {
+    } else if (typedError.code === 'NoSuchBucket') {
       console.error(`The bucket "${params.Bucket}" does not exist or you do not have access to it.`);
-    } else if (error.code === 'NetworkingError') {
+    } else if (typedError.code === 'NetworkingError') {
       console.error(`Network error occurred. Please check your internet connection and AWS region settings.`);
     }
     
-    throw new Error(`Failed to upload image to S3: ${error}`);
+    // Switch to fallback mode for this upload
+    console.log(`Switching to fallback storage after S3 error for: ${key}`);
+    const localUrl = generateLocalUrl(key, true);
+    localImageStorage[key] = {
+      buffer,
+      contentType,
+      url: localUrl
+    };
+    return localUrl;
   }
 };
+
+// Export local storage for routes implementation
+export const getLocalStorage = () => ({
+  localImageStorage,
+  localMarkdownStorage
+});
