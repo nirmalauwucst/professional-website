@@ -30,7 +30,7 @@ const Header = ({ activeSection }: HeaderProps) => {
       closeMobileMenu();
       return;
     }
-    
+
     if (sectionId === "blog" && isHomePage) {
       // On home page, either scroll to blog section or navigate to blog page
       const element = document.getElementById(sectionId);
@@ -45,7 +45,7 @@ const Header = ({ activeSection }: HeaderProps) => {
       }
       return;
     }
-    
+
     if (isHomePage) {
       // If on home page, smooth scroll to the section
       const element = document.getElementById(sectionId);
@@ -55,7 +55,7 @@ const Header = ({ activeSection }: HeaderProps) => {
       }
     } else {
       // If on another page, navigate to home then to specific section using sessionStorage
-      sessionStorage.setItem('scrollToSection', sectionId);
+      sessionStorage.setItem("scrollToSection", sectionId);
       window.location.href = "/";
       closeMobileMenu();
     }
@@ -66,7 +66,7 @@ const Header = ({ activeSection }: HeaderProps) => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -83,10 +83,12 @@ const Header = ({ activeSection }: HeaderProps) => {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 z-50 transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
+    <header
+      className={`fixed top-0 left-0 right-0 bg-white bg-opacity-95 z-50 transition-shadow ${scrolled ? "shadow-sm" : ""}`}
+    >
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <a 
-          href="/" 
+        <a
+          href="/"
           className="text-xl font-bold font-poppins text-primary flex items-center space-x-2"
           onClick={(e) => {
             if (isHomePage) {
@@ -99,16 +101,16 @@ const Header = ({ activeSection }: HeaderProps) => {
           }}
         >
           <span className="text-2xl text-accent">&lt;/&gt;</span>
-          <span>John Doe</span>
+          <span>Nirmala Madusanka</span>
         </a>
-        
+
         {/* Desktop Navigation */}
         <nav className="hidden md:block">
           <ul className="flex space-x-8">
             {navLinks.map((link) => (
               <li key={link.id}>
-                <a 
-                  href={isHomePage ? `#${link.id}` : `/#${link.id}`} 
+                <a
+                  href={isHomePage ? `#${link.id}` : `/#${link.id}`}
                   className={`relative text-primary hover:text-secondary font-medium pb-1 ${
                     activeSection === link.id ? "after:w-full" : "after:w-0"
                   }`}
@@ -121,7 +123,7 @@ const Header = ({ activeSection }: HeaderProps) => {
                   }}
                 >
                   {link.label}
-                  <span 
+                  <span
                     className={`absolute left-0 bottom-0 w-0 h-0.5 bg-accent transition-all duration-300 ${
                       activeSection === link.id ? "w-full" : "w-0"
                     }`}
@@ -131,7 +133,7 @@ const Header = ({ activeSection }: HeaderProps) => {
             ))}
           </ul>
         </nav>
-        
+
         {/* Mobile Menu Button */}
         <Button
           variant="ghost"
@@ -139,23 +141,31 @@ const Header = ({ activeSection }: HeaderProps) => {
           className="md:hidden text-primary"
           onClick={toggleMobileMenu}
         >
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </Button>
       </div>
-      
+
       {/* Mobile Menu */}
-      <div 
+      <div
         className={`md:hidden bg-white shadow-md py-4 px-6 absolute w-full transition-all duration-300 ${
-          mobileMenuOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+          mobileMenuOpen
+            ? "max-h-60 opacity-100"
+            : "max-h-0 opacity-0 overflow-hidden"
         }`}
       >
         <ul className="space-y-4">
           {navLinks.map((link) => (
             <li key={link.id}>
-              <a 
-                href={isHomePage ? `#${link.id}` : `/#${link.id}`} 
+              <a
+                href={isHomePage ? `#${link.id}` : `/#${link.id}`}
                 className={`block py-2 ${
-                  activeSection === link.id ? "text-secondary font-medium" : "text-primary hover:text-secondary"
+                  activeSection === link.id
+                    ? "text-secondary font-medium"
+                    : "text-primary hover:text-secondary"
                 }`}
                 onClick={(e) => {
                   e.preventDefault();
